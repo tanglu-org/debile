@@ -35,12 +35,10 @@ from debile.master.orm import (Person, Suite, Component, Arch, Check, Group,
                                GroupSuite, Source, Binary, Deb, Job, Result,
                                create_source, create_jobs)
 
-from rapidumolib.pkginfo import PackageBuildInfoRetriever
-from rapidumolib.config import RapidumoConfig
-from rapidumolib.buildcheck import BuildCheck
+from rapidumo.pkginfo import PackageBuildInfoRetriever, BuildCheck
+from rapidumo.config import RapidumoConfig
 
 NEEDSBUILD_EXPORT_DIR = "/srv/dak/export/needsbuild"
-
 
 class ArchiveDebileBridge:
     def __init__(self, config):
