@@ -38,7 +38,7 @@ from debile.master.orm import (Person, Suite, Component, Arch, Check, Group,
 from rapidumo.pkginfo import PackageBuildInfoRetriever, BuildCheck
 from rapidumo.config import RapidumoConfig
 
-NEEDSBUILD_EXPORT_DIR = "/srv/dak/export/needsbuild"
+NEEDSBUILD_EXPORT_DIR = "/srv/dak/export/pkg-issues/needs-build"
 
 class ArchiveDebileBridge:
     def __init__(self, config):
