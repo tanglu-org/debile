@@ -83,7 +83,7 @@ class DebileHTTPSConnection(httplib.HTTPSConnection):
         self.sock = ssl.wrap_socket(
             sock, self.key_file, self.cert_file,
             ca_certs=self.ca_certs, cert_reqs=cert_reqs,
-            do_handshake_on_connect=True, ssl_version=ssl.PROTOCOL_TLSv1,
+            do_handshake_on_connect=True,
         )
 
         if not validate(self.sock.getpeercert(), self.host):
@@ -110,7 +110,7 @@ class DebileSafeTransport(xmlrpclib.Transport):
             return self._connection[1]
 
         chost, self._extra_headers, x509 = self.get_host_info(host)
-        self._connection = host, DebileHTTPSConnection(chost, None, timeout=60, **(x509 or {}))
+        self._connection = host, DebileHTTPSConnection(chost, None, timeout=75, **(x509 or {}))
 
         return self._connection[1]
 
