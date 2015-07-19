@@ -140,19 +140,25 @@ class DebileMasterInterface(object):
     @builder_method
     def close_job(self, job_id, failed):
         job = NAMESPACE.session.query(Job).get(job_id)
-        job.finished_at = datetime.utcnow()
+        try:
+            job.finished_at = datetime.utcnow()
 
-        emit('complete', 'job', job.debilize())
+            emit('complete', 'job', job.debilize())
+        except (AttributeError):
+            logger.warn("Job %d went missing during execution!" % job_id, exc_info=True)
 
         return True
 
     @builder_method
     def forfeit_job(self, job_id):
         job = NAMESPACE.session.query(Job).get(job_id)
-        job.assigned_at = None
-        job.builder = None
+        try:
+            job.assigned_at = None
+            job.builder = None
 
-        emit('abort', 'job', job.debilize())
+            emit('abort', 'job', job.debilize())
+        except (AttributeError):
+            logger.warn("Job %d went missing during execution!" % job_id, exc_info=True)
 
         return True
 
