@@ -145,6 +145,7 @@ class DebileMasterInterface(object):
 
             emit('complete', 'job', job.debilize())
         except (AttributeError):
+            logger = logging.getLogger('debile')
             logger.warn("Job %d went missing during execution!" % job_id, exc_info=True)
 
         return True
@@ -158,6 +159,7 @@ class DebileMasterInterface(object):
 
             emit('abort', 'job', job.debilize())
         except (AttributeError):
+            logger = logging.getLogger('debile')
             logger.warn("Job %d went missing during execution!" % job_id, exc_info=True)
 
         return True
