@@ -80,4 +80,4 @@ def sign(changes, gpg):
 
 def upload(changes, job, gpg, host):
     sign(changes, gpg)
-    dput.upload(changes, host)
+    dput.upload(changes, host, no_upload_log=True)
