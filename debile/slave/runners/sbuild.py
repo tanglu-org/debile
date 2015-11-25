@@ -127,6 +127,10 @@ def sbuild(package, maintainer, suite, affinity, build_arch, build_indep, analys
         if summary and line.startswith("Fail-Stage: "):
             failstage = line.replace("Fail-Stage: ", "")
 
+    if (not summary) and (not status) and (not failstage):
+        raise Exception("Sbuild failed to run. " +
+                        "Out: \"%s\" Err: \"%s\"" %
+                        (out, err))
     if (not summary or
             ((status == "failed" or
               status == "skipped") and
