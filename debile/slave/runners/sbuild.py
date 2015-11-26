@@ -122,6 +122,10 @@ def sbuild(package, maintainer, suite, affinity, build_arch, build_indep, analys
     for line in out.splitlines():
         if line == u"│ Summary                                                                      │":
             summary = True
+        # FIXME: Some sbuild logs end up truncated - this is a very cheap  workaround for that, which doesn't
+        # free us from fixing the real issue
+        if line.startswith("Distribution: "):
+            summary = True
         if summary and line.startswith("Status: "):
             status = line.replace("Status: ", "")
         if summary and line.startswith("Fail-Stage: "):
@@ -130,7 +134,7 @@ def sbuild(package, maintainer, suite, affinity, build_arch, build_indep, analys
     if (not summary) and (not status) and (not failstage):
         raise Exception("Sbuild failed to run. " +
                         "Out: \"%s\" Err: \"%s\"" %
-                        (out, err))
+                        (out[-1000:], err[-1000:]))
     if (not summary or
             ((status == "failed" or
               status == "skipped") and
