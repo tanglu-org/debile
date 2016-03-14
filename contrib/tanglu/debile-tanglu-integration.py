@@ -208,6 +208,9 @@ class ArchiveDebileBridge:
         pkg_dict = self._pkginfo.get_packages_dict(suite)
 
         for pkg in pkg_dict.values():
+            if pkg.suite.startswith("buildq"):
+                _, _, main_suite = pkg.suite.partition('-')
+                pkg.suite = main_suite
             try:
                 with session() as s:
                     source = s.query(Source).join(Source.group_suite).join(GroupSuite.group).join(GroupSuite.suite).filter(
