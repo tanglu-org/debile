@@ -45,6 +45,8 @@ class ArchiveDebileBridge:
         self._conf = RapidumoConfig()
         self._affinity_preference = config["affinity_preference"]
         self._archive_path = "%s/%s" % (self._conf.archive_config['path'], self._conf.distro_name)
+        self._buildq_path = self._conf.archive_config['build_queues_path']
+
         self._pkginfo = PackageBuildInfoRetriever(self._conf)
         self._bcheck = BuildCheck(self._conf)
 
@@ -59,8 +61,15 @@ class ArchiveDebileBridge:
             Component.name == pkg.component
         ).one()
 
+        aroot = None
+        if pkg.queue_name:
+            # package is in a build-queue
+            aroot = self._buildq_path
+        else:
+            aroot = self._archive_path
+
         dsc_fname = "{root}/{directory}/{filename}".format(
-            root=self._archive_path,
+            root=aroot,
             directory=pkg.directory,
             filename=pkg.dsc,
         )
@@ -210,6 +219,7 @@ class ArchiveDebileBridge:
         for pkg in pkg_dict.values():
             if pkg.suite.startswith("buildq"):
                 _, _, main_suite = pkg.suite.partition('-')
+                pkg.queue_name = pkg.suite
                 pkg.suite = main_suite
             try:
                 with session() as s:
