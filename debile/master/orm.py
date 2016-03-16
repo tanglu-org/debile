@@ -18,6 +18,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+import os
 import re
 import importlib
 from datetime import datetime
@@ -213,6 +214,8 @@ class Group(Base):
         "maintainer_email": "maintainer.email",
         "repo_path": "repo_path",
         "repo_url": "repo_url",
+        "buildq_path": "buildq_path",
+        "buildq_url": "buildq_url",
         "files_path": "files_path",
         "files_url": "files_url",
     }
@@ -238,6 +241,8 @@ class Group(Base):
             if conf.get(entry) is None:
                 raise ValueError("No configured repo info. Set in master.yaml")
 
+        entires.extend(["buildq_path", "buildq_url"])
+
         return {x: conf[x].format(
             name=self.name,
             id=self.id,
@@ -250,6 +255,14 @@ class Group(Base):
     @property
     def repo_url(self):
         return self.get_repo_info()['repo_url']
+
+    @property
+    def buildq_path(self):
+        return self.get_repo_info().get('buildq_path')
+
+    @property
+    def buildq_url(self):
+        return self.get_repo_info().get('buildq_url')
 
     @property
     def files_path(self):
@@ -389,18 +402,35 @@ class Source(Base):
     directory = Column(String(255), nullable=False)
     dsc_filename = Column(String(255), nullable=False)
 
-    @property
-    def dsc_path(self):
-        return "{root}/{directory}/{filename}".format(
-            root=self.group.repo_path,
+    def _get_dsc_path(self, pool_root):
+        if not pool_root:
+            return False
+        fname = "{root}/{directory}/{filename}".format(
+            root = pool_root,
             directory=self.directory,
             filename=self.dsc_filename,
         )
+        if not os.path.exists(fname):
+            return fname, False
+        return fname, True
+
+    @property
+    def dsc_path(self):
+        fname, found = self._get_dsc_path(self.group.buildq_path)
+        if not found:
+            fname, _ = self._get_dsc_path(self.group.repo_path)
+        return fname
 
     @property
     def dsc_url(self):
+        repo_url = None
+        _, found = self._get_dsc_path(self.group.buildq_path)
+        if found:
+            repo_url = self.group.buildq_url
+        else:
+            repo_url = self.group.repo_url
         return "{root}/{directory}/{filename}".format(
-            root=self.group.repo_url,
+            root=repo_url,
             directory=self.directory,
             filename=self.dsc_filename,
         )
@@ -555,18 +585,36 @@ class Deb(Base):
     def arch(self):
         return self.binary.arch
 
-    @property
-    def path(self):
-        return "{root}/{directory}/{filename}".format(
-            root=self.group.repo_path,
+
+    def _get_deb_path(self, pool_root):
+        if not pool_root:
+            return None, False
+        fname = "{root}/{directory}/{filename}".format(
+            root = pool_root,
             directory=self.directory,
             filename=self.filename,
         )
+        if not os.path.exists(fname):
+            return fname, False
+        return fname, True
+
+    @property
+    def path(self):
+        fname, found = self._get_deb_path(self.group.repo_path)
+        if not found:
+            fname, _ = self._get_deb_path(self.group.buildq_path)
+        return fname
 
     @property
     def url(self):
+        repo_url = None
+        _, found = self._get_deb_path(self.group.buildq_path)
+        if found:
+            repo_url = self.group.buildq_url
+        else:
+            repo_url = self.group.repo_url
         return "{root}/{directory}/{filename}".format(
-            root=self.group.repo_url,
+            root=repo_url,
             directory=self.directory,
             filename=self.filename,
         )
